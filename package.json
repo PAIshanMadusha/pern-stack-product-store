@@ -4,16 +4,16 @@
   "description": "A New PERN Stack Project started.",
   "main": "server/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon server/server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PAIshanMadusha/pern-stack-product-store.git"
   },
   "keywords": [],
+  "type": "module",
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/PAIshanMadusha/pern-stack-product-store/issues"
   },
@@ -26,5 +26,8 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
