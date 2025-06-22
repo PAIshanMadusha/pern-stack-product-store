@@ -87,7 +87,7 @@ export const deleteAProduct = async (req, res) => {
   const { id } = req.params;
   try {
     const deletedProduct = await sql`
-        DELETR FROM products WHERE id = ${id} RETURNING *;
+        DELETE FROM products WHERE id = ${id} RETURNING *;
         `;
     if (deletedProduct.length === 0) {
       return res.status(404).json({
