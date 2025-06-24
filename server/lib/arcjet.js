@@ -10,14 +10,14 @@ export const aj = arcjet({
     detectBot({
       mode: "LIVE",
       // Allow search engine bots to access the site
-      allow: ["CATEGORY:SEARCH_ENGINE"],
+      allow: ["CATEGORY:SEARCH_ENGINE",],
     }),
     // Rate limiting configuration
     tokenBucket({
       mode: "LIVE",
-      refillRate: 5,
-      interval: 10,
-      capacity: 10,
+      refillRate: 30,
+      interval: 5,
+      capacity: 20,
     }),
   ],
 });

@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 
 import productRoutes from "./routes/productRoutes.js";
 import { sql } from "./config/db.js";
+import { aj } from "./lib/arcjet.js";
 
 dotenv.config();
 
@@ -25,7 +26,7 @@ app.use(async (req, res, next) => {
     const decision = await aj.protect(req, {
       requested: 1,
     });
-    if (decision.isDenied) {
+    if (decision.isDenied()) {
       if (decision.reason.isRateLimit()) {
         res.status(429).json({
           error: "Rate limit exceeded. Please try again later.",
