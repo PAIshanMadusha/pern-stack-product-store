@@ -8,6 +8,7 @@ export const useProductStore = create((set, get) => ({
   products: [],
   loading: false,
   error: null,
+  currentProduct: null,
 
   formData: {
     name: "",
@@ -19,6 +20,7 @@ export const useProductStore = create((set, get) => ({
 
   resetForm: ()=> set({formData: {name: "", price: "", image: ""}}),
 
+  //Add a product
   addAProduct: async(e) =>{
     e.preventDefault();
     set({loading: true});
@@ -37,6 +39,7 @@ export const useProductStore = create((set, get) => ({
     }
   },
 
+  //Fetch all products
   fetchProducts: async () => {
     set({ loading: true });
     try{
@@ -51,6 +54,7 @@ export const useProductStore = create((set, get) => ({
     }
   },
 
+  //Delete a product by ID
   deleteAProduct: async (id)=> {
     set({loading: true})
     try{
@@ -63,5 +67,38 @@ export const useProductStore = create((set, get) => ({
     }finally{
         set({loading: false});
     }
-  }
+  },
+
+  //Fetch a single product by ID
+  fetchAProduct: async(id) =>{
+    set({loading: true});
+    try{
+      const response = await axios.get(`${BASE_URL}/api/products/${id}`);
+      set({currentProduct: response.data.data, 
+        formData: response.data.data,
+        error: null,
+      })
+    }catch(error){
+      console.error("Error fetching a product:", error);
+      set({error: "Failed to fetch product details.", currentProduct: null});
+    }finally{
+      set({loading: false})
+    }
+  },
+
+  //Update a product by ID
+  updateAProduct: async(id) =>{
+    set({loading: true})
+    try{
+      const {formData} = get();
+      const response = await axios.put(`${BASE_URL}/api/products/${id}`, formData);
+      set({currentProduct: response.data.data});
+      toast.success("Product updated successfully!");
+    }catch(error){
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product!");
+    }finally{
+      set({loading: false})
+    }
+  },
 }));
