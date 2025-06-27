@@ -1,4 +1,4 @@
-import { PaletteIcon } from "lucide-react";
+import { SunDimIcon, SunMoonIcon } from "lucide-react";
 import { THEMES } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
 
@@ -9,8 +9,8 @@ function ThemeSelector() {
   return (
     <div className="dropdown dropdown-end">
       {/* Dropdown menu for theme selection */}
-      <button tabIndex={0} className="btn btn-ghost btn-circle">
-        <PaletteIcon className="size-5" />
+      <button tabIndex={0} className="btn btn-circle">
+        <SunDimIcon className="size-10 text-primary"/>
       </button>
       <div
         tabIndex={0}
@@ -29,7 +29,7 @@ function ThemeSelector() {
                         `}
             onClick={() => setTheme(themeOption.name)}
           >
-            <PaletteIcon className="size-4" />
+            <SunMoonIcon className="size-4" />
             <span className="text-sm font-medium">{themeOption.label}</span>
 
             {/* Theme Preview Colors */}

@@ -12,13 +12,15 @@ export const useProductStore = create((set, get) => ({
 
   formData: {
     name: "",
+    brand: "",
+    description: "",
     price: "",
     image: "",
   },
 
   setFormData: (formData) => set({formData}),
 
-  resetForm: ()=> set({formData: {name: "", price: "", image: ""}}),
+  resetForm: ()=> set({formData: {name: "", brand: "", description: "", price: "", image: ""}}),
 
   //Add a product
   addAProduct: async(e) =>{

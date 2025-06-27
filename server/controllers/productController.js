@@ -3,16 +3,16 @@ import { sql } from "../config/db.js";
 // This file contains the controller functions for handling product-related operations
 // Controller to create a new product in the database
 export const createAProduct = async (req, res) => {
-  const { name, image, price } = req.body;
-  if (!name || !image || !price) {
+  const { name, brand, description, image, price } = req.body;
+  if (!name || !brand || !description || !image || !price) {
     return res.status(400).json({
       success: false,
-      message: "Please provide all required fields: name, image, price",
+      message: "Please provide all required fields: name, brand, description, image, price",
     });
   }
   try {
     const newProduct = await sql`
-    INSERT INTO products (name, image, price) VALUES (${name}, ${image}, ${price}) RETURNING *;
+    INSERT INTO products (name, brand, description, image, price) VALUES (${name}, ${brand}, ${description}, ${image}, ${price}) RETURNING *;
     `;
     console.log("Product created successfully:", newProduct);
     res.status(201).json({ success: true, data: newProduct[0] });
@@ -60,10 +60,10 @@ export const getAllProducts = async (req, res) => {
 // Controller to update a product by ID in the database
 export const updateAProduct = async (req, res) => {
   const { id } = req.params;
-  const { name, image, price } = req.body;
+  const { name, brand, description, image, price } = req.body;
   try {
     const updatedProduct = await sql`
-    UPDATE products SET name = ${name}, image = ${image}, price= ${price} WHERE id = ${id}
+    UPDATE products SET name = ${name}, brand = ${brand}, description = ${description}, image = ${image}, price= ${price} WHERE id = ${id}
     RETURNING *;
     `;
     if (updatedProduct.length === 0) {

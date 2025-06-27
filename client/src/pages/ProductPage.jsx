@@ -1,7 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useProductStore } from "../store/useProductStore";
 import { useEffect } from "react";
-import { ArrowLeftIcon, SaveIcon, Trash2Icon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  PackageCheckIcon,
+  SaveIcon,
+  Signature,
+  Trash2Icon,
+} from "lucide-react";
 import { Package2Icon, DollarSignIcon, ImageIcon } from "lucide-react";
 
 function ProductPage() {
@@ -14,6 +20,7 @@ function ProductPage() {
     fetchAProduct,
     updateAProduct,
     deleteAProduct,
+    resetForm,
   } = useProductStore();
 
   const navigate = useNavigate();
@@ -23,9 +30,16 @@ function ProductPage() {
     fetchAProduct(id);
   }, [fetchAProduct, id]);
 
-  const handleDelete = async () =>{
-    await deleteAProduct(id);
-    navigate("/");
+  const handleDelete = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this product? This action cannot be undone."
+      )
+    ) {
+      await deleteAProduct(id);
+      resetForm(); // Clear the form after deletion
+      navigate("/");
+    }
   };
 
   if (loading) {
@@ -48,9 +62,14 @@ function ProductPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-
       {/* Back to Products Button */}
-      <button onClick={() => navigate("/")} className="btn btn-outline btn-primary flex items-center gap-2 mb-6 mt-2 shadow transition-all hover:scale-105">
+      <button
+        onClick={() => {
+          navigate("/");
+          resetForm(); // Clear the form when navigating back
+        }}
+        className="btn btn-outline btn-primary flex items-center gap-2 mb-6 mt-2 shadow transition-all hover:scale-105"
+      >
         <ArrowLeftIcon className="size-5" />
         <span className="font-semibold">Back to Products</span>
       </button>
@@ -92,6 +111,52 @@ function ProductPage() {
                     value={formData.name}
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Product Brand */}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text text-base font-medium mb-1">
+                    Product Brand:
+                  </span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-base-content/50 z-10">
+                    <Signature className="size-5" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Ex: MSI, Logitech, Corsair"
+                    className="input input-bordered w-full pl-10 py-3 focus:input-primary transition-colors duration-200 rounded-xl"
+                    value={formData.brand}
+                    onChange={(e) =>
+                      setFormData({ ...formData, brand: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Product Description */}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text text-base font-medium mb-1">
+                    Product Description:
+                  </span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-base-content/50 z-10">
+                    <PackageCheckIcon className="size-5" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Ex: MSI, Logitech, Corsair"
+                    className="input input-bordered w-full pl-10 py-3 focus:input-primary transition-colors duration-200 rounded-xl"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
                     }
                   />
                 </div>
@@ -146,22 +211,33 @@ function ProductPage() {
               </div>
 
               <div className="flex justify-evenly mt-8">
-                <button type="button" onClick={handleDelete} className="btn btn-error">
-                  < Trash2Icon className="size-4 mr-2"/>
-                    Delete Product
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="btn btn-error text-white"
+                >
+                  <Trash2Icon className="size-4 mr-2 text-white" />
+                  Delete Product
                 </button>
 
-                <button 
+                <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled = {loading || !formData.name || !formData.price || !formData.image}
+                  disabled={
+                    loading ||
+                    !formData.name ||
+                    !formData.brand ||
+                    !formData.description ||
+                    !formData.price ||
+                    !formData.image
+                  }
                 >
-                  { loading ? (
-                    <span className="loading loading-spinner loading-sm"/>
+                  {loading ? (
+                    <span className="loading loading-spinner loading-sm" />
                   ) : (
                     <>
-                    <SaveIcon className="size-4 mr-2"/>
-                    Save Changes
+                      <SaveIcon className="size-4 mr-2 text-white" />
+                      Save Changes
                     </>
                   )}
                 </button>

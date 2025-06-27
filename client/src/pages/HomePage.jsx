@@ -17,16 +17,16 @@ function HomePage() {
     <main className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <button
-          className="btn btn-primary"
+          className="btn btn-active border-white hover:btn-primary"
           onClick={() =>
             document.getElementById("add_product_modal").showModal()
           }
         >
           <PlusCircleIcon className="size-5 mr-2" />
-          Add Product
+          Add Products
         </button>
-        <button className="btn btn-ghost btn-circle" onClick={fetchProducts}>
-          <RefreshCwIcon className="size-5" />
+        <button className="btn btn-primary btn-circle" onClick={fetchProducts}>
+          <RefreshCwIcon className="size-6" />
         </button>
       </div>
 
