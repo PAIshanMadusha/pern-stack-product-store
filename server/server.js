@@ -1,89 +1,96 @@
 import express from "express";
-import helmet from "helmet";
+import helmet, { contentSecurityPolicy } from "helmet";
 import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 
 import productRoutes from "./routes/productRoutes.js";
 import { sql } from "./config/db.js";
-import { aj } from "./lib/arcjet.js";
+import { getArcjetInstance } from "./lib/arcjet.js";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 3000;
+const __dirname = path.resolve();
 
-console.log(PORT);
+const aj = await getArcjetInstance(); // Async import of Arcjet instance
 
-app.use(express.json()); // Middleware to parse JSON request bodies
-app.use(cors()); // CORS middleware to allow cross-origin requests
-app.use(helmet()); //Helmet helps secure Express apps by setting various HTTP headers
-app.use(morgan("dev")); // Morgan is a middleware for logging HTTP requests
+// Basic middleware
+app.use(express.json());
+app.use(cors());
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(morgan("dev"));
 
-//Apply Arcject Rate-limiting for all routes
-app.use(async (req, res, next) => {
-  try {
-    const decision = await aj.protect(req, {
-      requested: 1,
-    });
-    if (decision.isDenied()) {
-      if (decision.reason.isRateLimit()) {
-        res.status(429).json({
-          error: "Rate limit exceeded. Please try again later.",
-        });
-      } else if (decision.reason.isBot()) {
-        res.status(403).json({
-          error: "Accesss denied. Bots are not allowed.",
-        });
-      } else {
-        res.status(403).json({
-          error: "Access denied. You are not allowed to access this resource.",
-        });
+// Arcjet middleware for bot detection and rate limiting
+if (aj) {
+  app.use(async (req, res, next) => {
+    try {
+      const decision = await aj.protect(req, { requested: 1 });
+
+      if (decision.isDenied()) {
+        if (decision.reason.isRateLimit()) {
+          return res.status(429).json({ error: "Rate limit exceeded." });
+        }
+        if (decision.reason.isBot()) {
+          return res.status(403).json({ error: "Bots are not allowed." });
+        }
+        return res.status(403).json({ error: "Access denied." });
       }
-      return;
-    }
-    // Check for spoofed bots
-    if (
-      decision.results.some(
-        (result) => result.reason.isBot() && result.reason.isSpoofed()
-      )
-    ) {
-      res
-        .status(403)
-        .json({ error: "Access denied. Spoofed bots are not allowed." });
-      return;
-    }
-    next();
-  } catch (error) {
-    console.error("Error in Arcjet protection middleware:", error);
-    next(error);
-  }
-});
 
+      const spoofed = decision.results.some(
+        (r) => r.reason.isBot() && r.reason.isSpoofed()
+      );
+      if (spoofed) {
+        return res.status(403).json({ error: "Spoofed bots not allowed." });
+      }
+
+      next();
+    } catch (error) {
+      console.error("Arcjet middleware error:", error);
+      next();
+    }
+  });
+}
+
+// Your API routes
 app.use("/api/products", productRoutes);
 
-// Initialize the database and create the products table if it doesn't exist
+// Serve client in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "/client/dist")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "client", "dist", "index.html"));
+  });
+}
+
+// Initialize DB
 async function initDB() {
   try {
     await sql`
-        CREATE TABLE IF NOT EXISTS products(
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            brand VARCHAR(255) NOT NULL,
-            description VARCHAR(255) NOT NULL,
-            image VARCHAR(255) NOT NULL,
-            price DECIMAL(10, 2) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`;
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        brand VARCHAR(255) NOT NULL,
+        description VARCHAR(255) NOT NULL,
+        image VARCHAR(255) NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
     console.log("Database initialized successfully!");
   } catch (error) {
-    console.log("Error initializing database: ", error);
+    console.error("Error initializing database:", error);
   }
 }
 
-// Start the server and initialize the database
-initDB().then(() => {
-  app.listen(PORT, () => {
-    console.log("Server is running on port: " + PORT);
+initDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port: ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Fatal error during server startup:", err);
   });
-});

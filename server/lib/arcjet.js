@@ -1,23 +1,29 @@
-import arcjet, { tokenBucket, shield, detectBot } from "@arcjet/node";
 import "dotenv/config";
 
-// Initialize Arcjet
-export const aj = arcjet({
-  key: process.env.ARCJET_KEY,
-  characteristics: ["ip.src"],
-  rules: [
-    shield({ mode: "LIVE" }),
-    detectBot({
-      mode: "LIVE",
-      // Allow search engine bots to access the site
-      allow: ["CATEGORY:SEARCH_ENGINE",],
-    }),
-    // Rate limiting configuration
-    tokenBucket({
-      mode: "LIVE",
-      refillRate: 30,
-      interval: 5,
-      capacity: 20,
-    }),
-  ],
-});
+// This async factory returns Arcjet instance only in production with key
+export async function getArcjetInstance() {
+  if (process.env.NODE_ENV === "production" && process.env.ARCJET_KEY) {
+    const arcjetModule = await import("@arcjet/node");
+    const { default: arcjet, tokenBucket, shield, detectBot } = arcjetModule;
+
+    return arcjet({
+      key: process.env.ARCJET_KEY,
+      characteristics: ["ip.src"],
+      rules: [
+        shield({ mode: "LIVE" }),
+        detectBot({
+          mode: "LIVE",
+          allow: ["CATEGORY:SEARCH_ENGINE"],
+        }),
+        tokenBucket({
+          mode: "LIVE",
+          refillRate: 30,
+          interval: 5,
+          capacity: 20,
+        }),
+      ],
+    });
+  }
+
+  return null; // No Arcjet in development or missing key
+}
